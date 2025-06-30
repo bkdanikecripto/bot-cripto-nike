@@ -1,0 +1,36 @@
+{
+    "13497343650": {
+        "nome": "nicholas pierre",
+        "contato": "35919141409",
+        "senha": "Nick3107",
+        "saldo": 115.78,
+        "transacoes": [
+            {
+                "tipo": "Dep\u00f3sito",
+                "valor": "+R$40.00",
+                "saldo": "R$140.00"
+            },
+            {
+                "tipo": "Aposta",
+                "valor": "+R$64.78",
+                "saldo": "R$163.78"
+            },
+            {
+                "tipo": "Saque",
+                "valor": "-R$48.00",
+                "saldo": "R$115.78"
+            }
+        ],
+        "corridas": [
+            {
+                "multiplicadores": {
+                    "Tartaruga": 2.02,
+                    "Javali": 4.62,
+                    "Guepardo": 1.58
+                },
+                "ganho": 64.78,
+                "saldo_apos": 163.78
+            }
+        ]
+    }
+}
