@@ -4,15 +4,20 @@ import feedparser
 from datetime import datetime, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+import asyncio
+import nest_asyncio
+
+nest_asyncio.apply()  # Permite rodar event loop dentro de outro event loop
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 
-# Token já no código, só cola e roda
+# Token do Bot
 TOKEN = "7553238358:AAGxJh2vS18tBx009-m2pyHPTN6ddraXDuU"
 
+# Carteira com quantidade e preço médio
 CARTEIRA = {
     'solana': {'qtde': 7, 'preco_medio': 717.0},
     'xrp': {'qtde': 440, 'preco_medio': 12.25}
@@ -78,16 +83,21 @@ def formatar_resumo(carteira, precos):
     sol_atual = precos['solana']['preco_atual']
     xrp_atual = precos['xrp']['preco_atual']
 
+    # Solana
     sol_invest = sol['qtde'] * sol['preco_medio']
     sol_valor = sol['qtde'] * sol_atual
     sol_lucro = sol_valor - sol_invest
     sol_pct = (sol_lucro / sol_invest) * 100 if sol_invest else 0
+    sol_unit = sol_atual - sol['preco_medio']
 
+    # XRP
     xrp_invest = xrp['qtde'] * xrp['preco_medio']
     xrp_valor = xrp['qtde'] * xrp_atual
     xrp_lucro = xrp_valor - xrp_invest
     xrp_pct = (xrp_lucro / xrp_invest) * 100 if xrp_invest else 0
+    xrp_unit = xrp_atual - xrp['preco_medio']
 
+    # Total
     total_invest = sol_invest + xrp_invest
     total_valor = sol_valor + xrp_valor
     total_lucro = total_valor - total_invest
@@ -95,15 +105,20 @@ def formatar_resumo(carteira, precos):
 
     return (
         f"📊 *Resumo da Carteira*\n\n"
-        f"• SOLANA: R${sol_atual:.2f} (Qtd: {sol['qtde']})\n"
-        f"  Investido: R${sol_invest:.2f} → Atual: R${sol_valor:.2f}\n"
-        f"  Lucro/Prejuízo: R${sol_lucro:.2f} ({sol_pct:+.2f}%)\n\n"
-        f"• XRP: R${xrp_atual:.2f} (Qtd: {xrp['qtde']})\n"
-        f"  Investido: R${xrp_invest:.2f} → Atual: R${xrp_valor:.2f}\n"
-        f"  Lucro/Prejuízo: R${xrp_lucro:.2f} ({xrp_pct:+.2f}%)\n\n"
+
+        f"• SOLANA / {sol['qtde']} unidades\n"
+        f"  PM: R${sol['preco_medio']:.2f} → Atual: R${sol_atual:.2f}\n"
+        f"  Lucro por unidade: R${sol_unit:+.2f} ({sol_pct:+.2f}%)\n"
+        f"  Lucro total: R${sol_lucro:+.2f}\n\n"
+
+        f"• XRP / {xrp['qtde']} unidades\n"
+        f"  PM: R${xrp['preco_medio']:.2f} → Atual: R${xrp_atual:.2f}\n"
+        f"  Lucro por unidade: R${xrp_unit:+.2f} ({xrp_pct:+.2f}%)\n"
+        f"  Lucro total: R${xrp_lucro:+.2f}\n\n"
+
         f"• Total Investido: R${total_invest:.2f}\n"
         f"• Valor Atual: R${total_valor:.2f}\n"
-        f"• Lucro/Prejuízo Total: R${total_lucro:.2f} ({total_pct:+.2f}%)"
+        f"• Lucro/Prejuízo Total: R${total_lucro:+.2f} ({total_pct:+.2f}%)"
     )
 
 def formatar_analise(moeda, dados, carteira):
@@ -169,12 +184,12 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await query.edit_message_text("Nenhuma notícia relevante encontrada.")
 
-def start_bot():
+async def main():
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(menu_callback))
     print("🤖 Bot cripto rodando...")
-    app.run_polling()
+    await app.run_polling()
 
 if __name__ == "__main__":
-    start_bot()
+    asyncio.run(main())
